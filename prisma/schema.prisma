@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  OWNER
+  MANAGER
+  ACCOUNTANT
+  STAFF
+}
+
+model Company {
+  id             String            @id @default(cuid())
+  companyCode    String            @unique
+  name           String
+  allowedIp      String?           // 可選，用於 IP 白名單比對
+  contractEnd    DateTime?
+  status         String            @default("active") // active, warning, inactive
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  
+  users          User[]
+  locations      CompanyLocation[]
+  checkIns       CheckIn[]
+  projects       Project[]
+  tasks          Task[]
+  chatRooms      ChatRoom[]
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  name          String?
+  avatar        String?
+  role          UserRole    @default(STAFF)
+  companyId     String?
+  company       Company?    @relation(fields: [companyId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  checkIns      CheckIn[]
+  assignedTasks Task[]      @relation("TaskAssignee")
+  createdTasks  Task[]      @relation("TaskCreator")
+  chatRooms     ChatRoom[]  @relation("ChatParticipants")
+  messages      Message[]
+  auditLogs     AuditLog[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tasks       Task[]
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  content     String
+  status      String   @default("pending") // pending, approved, returned, completed
+  priority    String   @default("normal")  // high, normal, low
+  supervisorNote String?
+  time        String?  // 格式化的提交時間
+  
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  assigneeId  String?
+  assignee    User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creatorId   String
+  creator     User     @relation("TaskCreator", fields: [creatorId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ChatRoom {
+  id          String    @id @default(cuid())
+  name        String?   //如果是群組則有名字
+  isGroup     Boolean   @default(false)
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id])
+  
+  participants User[]   @relation("ChatParticipants")
+  messages     Message[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String   @db.Text
+  senderId   String
+  sender     User     @relation(fields: [senderId], references: [id])
+  roomId     String
+  room       ChatRoom @relation(fields: [roomId], references: [id])
+  readBy     String[] // 已讀用戶的 ID 清單
+  taskable   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model CompanyLocation {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  name      String   // 例如：總部、分店A
+  latitude  Float
+  longitude Float
+  radius    Float    @default(100) // 單位：公尺
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CheckIn {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id])
+  clockIn    DateTime @default(now())
+  clockOut   DateTime?
+  ipAddress  String?
+  latitude   Float?
+  longitude  Float?
+  status     String   @default("normal") // normal, late, leave
+  createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // 例如：UPDATE_PERMISSION, CHECK_IN_OVERRIDE
+  target    String?  // 被操作的對象 ID
+  details   String?  @db.Text
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
