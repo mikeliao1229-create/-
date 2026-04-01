@@ -68,7 +68,7 @@ export default function Home() {
   };
 
   return (
-    <div className={`flex h-screen ${isDark ? "bg-[#0b0a1a] text-white" : "bg-[#f8fafc] text-slate-900"} font-sans overflow-hidden transition-colors duration-500`}>
+    <div className={`flex h-screen ${isDark ? "bg-[#05070a] text-white" : "bg-[#f5f8fa] text-slate-900"} font-sans overflow-hidden transition-colors duration-500`}>
       {/* Sidebar - Always Dark */}
       <aside 
         className={`${
@@ -123,20 +123,19 @@ export default function Home() {
 
         {/* Action area */}
         <div className="p-4 border-t border-white/5 space-y-2">
-          {/* Light/Dark Toggle */}
+          {/* Light/Dark Toggle - Matching Screenshot */}
           <button
             onClick={() => setIsDark(!isDark)}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-white/40 hover:text-white hover:bg-white/5"
-            title={isDark ? "切換至淺色模式" : "切換至深色模式"}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-white/50 hover:text-white hover:bg-white/5"
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
-            {isSidebarOpen && <span className="font-medium text-sm">{isDark ? "淺色模式" : "深色模式"}</span>}
+            {isSidebarOpen && <span className="font-medium text-sm">{isDark ? "切換至淺色模式" : "切換至深色模式"}</span>}
           </button>
 
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-red-400/60 hover:text-red-400 hover:bg-red-400/10"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-red-400/40 hover:text-red-400 hover:bg-red-400/10"
           >
             <LogOut size={20} />
             {isSidebarOpen && <span className="font-medium text-sm">登出系統</span>}

@@ -1,94 +1,58 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { CheckCircle, MessageSquare, Clock, Plus, Sun, Moon, Archive, RotateCcw, Send, User as UserIcon, ChevronDown, ChevronUp, AlertCircle, Users } from "lucide-react";
+import { CheckCircle, MessageSquare, Clock, Plus, Archive, RotateCcw, Send, User as UserIcon, ChevronDown, ChevronUp, AlertCircle, Users, Activity } from "lucide-react";
 
-// ─── Theme tokens ───────────────────────────────────────────────────────────
+// ─── Theme tokens matching the Dashboard Screenshot ──────────────────────────
 const themes = {
   dark: {
-    pageBg:        "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)",
-    orb1:          "radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)",
-    orb2:          "radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%)",
-    cardBg:        "rgba(30, 41, 59, 0.4)",
-    cardBorder:    "rgba(255,255,255,0.08)",
-    cardShadow:    "0 4px 24px rgba(0,0,0,0.3)",
-    cardHoverBg:   "rgba(255,255,255,0.07)",
-    cardApprBg:    "rgba(255,255,255,0.02)",
-    cardApprBorder:"rgba(255,255,255,0.05)",
-    divider:       "rgba(255,255,255,0.06)",
-    inputBg:       "rgba(255,255,255,0.06)",
-    inputBorder:   "rgba(255,255,255,0.12)",
-    inputText:     "rgba(255,255,255,0.85)",
-    inputPlaceholder:"rgba(255,255,255,0.3)",
-    noteBg:        "rgba(59,130,246,0.1)",
-    noteBorder:    "rgba(59,130,246,0.2)",
-    noteText:      "#93c5fd",
-    noteIcon:      "#60a5fa",
-    toggleBg:      "rgba(255,255,255,0.08)",
-    toggleBorder:  "rgba(255,255,255,0.14)",
-    toggleColor:   "rgba(255,255,255,0.7)",
-    addBtnBg:      "rgba(255,255,255,0.05)",
-    addBtnBorder:  "rgba(255,255,255,0.12)",
-    addBtnColor:   "rgba(255,255,255,0.4)",
-    filterBg:      "rgba(255,255,255,0.05)",
-    filterBorder:  "rgba(255,255,255,0.08)",
-    filterActive:  "rgba(99,102,241,0.25)",
-    filterActBorder:"rgba(99,102,241,0.4)",
-    filterActColor: "#a5b4fc",
-    filterColor:   "rgba(255,255,255,0.4)",
-    title:         "#ffffff",
-    subtitle:      "rgba(255,255,255,0.38)",
-    taskText:      "rgba(255,255,255,0.88)",
-    taskTextAppr:  "rgba(255,255,255,0.3)",
-    metaText:      "rgba(255,255,255,0.35)",
-    badgePending:  { bg:"rgba(251,191,36,0.12)", border:"rgba(251,191,36,0.25)", text:"#fbbf24" },
-    badgeAppr:     { bg:"rgba(34,197,94,0.10)",  border:"rgba(34,197,94,0.22)",  text:"#4ade80" },
-    badgeReturn:   { bg:"rgba(239,68,68,0.10)",  border:"rgba(239,68,68,0.22)",  text:"#f87171" },
-    statsCard:     "rgba(255,255,255,0.04)",
-    statsBorder:   "rgba(255,255,255,0.07)",
+    pageBg: "#05070a",
+    cardBg: "rgba(15, 20, 35, 0.6)",
+    cardBorder: "rgba(255, 255, 255, 0.05)",
+    cardShadow: "0 20px 50px rgba(0, 0, 0, 0.4)",
+    title: "#ffffff",
+    subtitle: "rgba(255, 255, 255, 0.45)",
+    accent: "#6366f1",
+    divider: "rgba(255, 255, 255, 0.05)",
+    inputBg: "rgba(255, 255, 255, 0.03)",
+    inputBorder: "rgba(255, 255, 255, 0.08)",
+    inputText: "#ffffff",
+    metaText: "rgba(255, 255, 255, 0.35)",
+    taskText: "#ffffff",
+    taskTextAppr: "rgba(255, 255, 255, 0.35)",
+    noteBg: "rgba(99, 102, 241, 0.05)",
+    noteBorder: "rgba(99, 102, 241, 0.15)",
+    noteText: "#818cf8",
+    noteIcon: "#6366f1",
+    filterBg: "rgba(255, 255, 255, 0.03)",
+    filterBorder: "rgba(255, 255, 255, 0.06)",
+    filterActive: "rgba(99, 102, 241, 0.15)",
+    filterActBorder: "rgba(99, 102, 241, 0.3)",
+    filterActColor: "#818cf8",
+    filterColor: "rgba(255, 255, 255, 0.4)",
+    statsCard: "rgba(255, 255, 255, 0.03)",
+    badgePending:  { bg:"rgba(251,191,36,0.08)", border:"rgba(251,191,36,0.2)", text:"#fbbf24" },
+    badgeAppr:     { bg:"rgba(16,185,129,0.08)",  border:"rgba(16,185,129,0.2)",  text:"#10b981" },
+    badgeReturn:   { bg:"rgba(239,68,68,0.08)",  border:"rgba(239,68,68,0.2)",  text:"#f87171" },
   },
   light: {
-    pageBg:        "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-    orb1:          "radial-gradient(circle, rgba(99,102,241,0.09) 0%, transparent 70%)",
-    orb2:          "radial-gradient(circle, rgba(236,72,153,0.06) 0%, transparent 70%)",
-    cardBg:        "rgba(255,255,255,0.80)",
-    cardBorder:    "rgba(99,102,241,0.10)",
-    cardShadow:    "0 4px 20px rgba(99,102,241,0.08)",
-    cardHoverBg:   "rgba(255,255,255,0.96)",
-    cardApprBg:    "rgba(248,250,255,0.70)",
-    cardApprBorder:"rgba(0,0,0,0.06)",
-    divider:       "rgba(0,0,0,0.06)",
-    inputBg:       "rgba(248,249,255,0.90)",
-    inputBorder:   "rgba(99,102,241,0.14)",
-    inputText:     "#1e293b",
-    inputPlaceholder:"#94a3b8",
-    noteBg:        "rgba(219,234,254,0.60)",
-    noteBorder:    "rgba(147,197,253,0.50)",
-    noteText:      "#1d4ed8",
-    noteIcon:      "#3b82f6",
-    toggleBg:      "rgba(99,102,241,0.08)",
-    toggleBorder:  "rgba(99,102,241,0.18)",
-    toggleColor:   "#6366f1",
-    addBtnBg:      "rgba(99,102,241,0.05)",
-    addBtnBorder:  "rgba(99,102,241,0.15)",
-    addBtnColor:   "#9ca3af",
-    filterBg:      "rgba(255,255,255,0.70)",
-    filterBorder:  "rgba(0,0,0,0.07)",
-    filterActive:  "rgba(99,102,241,0.12)",
-    filterActBorder:"rgba(99,102,241,0.30)",
-    filterActColor: "#4338ca",
-    filterColor:   "#64748b",
-    title:         "#1e293b",
-    subtitle:      "#64748b",
-    taskText:      "#1e293b",
-    taskTextAppr:  "#94a3b8",
-    metaText:      "#94a3b8",
-    badgePending:  { bg:"rgba(251,191,36,0.12)", border:"rgba(251,191,36,0.30)", text:"#d97706" },
-    badgeAppr:     { bg:"rgba(34,197,94,0.10)",  border:"rgba(34,197,94,0.25)",  text:"#16a34a" },
-    badgeReturn:   { bg:"rgba(239,68,68,0.08)",  border:"rgba(239,68,68,0.20)",  text:"#dc2626" },
-    statsCard:     "rgba(255,255,255,0.75)",
-    statsBorder:   "rgba(99,102,241,0.09)",
-  },
+    pageBg: "#f8fafc",
+    cardBg: "rgba(255, 255, 255, 0.8)",
+    cardBorder: "rgba(0, 0, 0, 0.05)",
+    cardShadow: "0 10px 30px rgba(0,0,0,0.06)",
+    title: "#1e293b",
+    subtitle: "#64748b",
+    divider: "rgba(0,0,0,0.05)",
+    inputBg: "#f1f5f9",
+    inputBorder: "#e2e8f0",
+    inputText: "#1e293b",
+    metaText: "#64748b",
+    taskText: "#1e293b",
+    taskTextAppr: "#94a3b8",
+    badgePending:  { bg:"rgba(251,191,36,0.1)", border:"rgba(251,191,36,0.2)", text:"#d97706" },
+    badgeAppr:     { bg:"rgba(34,197,94,0.1)",  border:"rgba(34,197,94,0.2)",  text:"#16a34a" },
+    badgeReturn:   { bg:"rgba(239,68,68,0.08)",  border:"rgba(239,68,68,0.2)",  text:"#dc2626" },
+  }
 };
 
 const initTasks = [
@@ -160,158 +124,157 @@ export default function DailyTaskManager({ isDark = true, user }: { isDark?: boo
     status==="returned" ? "已退回" : "待查核";
 
   return (
-    <div style={{ height:"100%", background:t.pageBg, fontFamily:"'DM Sans','Noto Sans TC',sans-serif", padding:"2rem", position:"relative", overflowY:"auto", transition:"background 0.45s" }}>
-
+    <div style={{ minHeight: "100%", background: t.pageBg, padding: "2.5rem", fontFamily: "'Inter', sans-serif", color: t.title, transition: "all 0.4s ease", overflowY: "auto" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
-        .task-card { border-radius:20px; border:1px solid ${t.cardBorder}; backdrop-filter:blur(20px); background: ${t.cardBg}; box-shadow: ${t.cardShadow}; transition:all 0.3s ease; position:relative; overflow:hidden; }
-        .task-card:hover { transform: translateY(-2px); }
-        .approve-btn { background:linear-gradient(135deg,#22c55e,#16a34a); color:white; border:none; padding:8px 16px; border-radius:12px; font-size:0.8rem; font-weight:700; cursor:pointer; }
-        .return-btn { background:transparent; color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:8px 16px; border-radius:12px; font-size:0.8rem; font-weight:700; cursor:pointer; }
-        .return-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .filter-pill { border:1px solid ${t.filterBorder}; border-radius:20px; padding:6px 14px; font-size:0.8rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; background: ${t.filterBg}; color: ${t.filterColor}; transition:all 0.2s; }
+        .task-card { border-radius:12px; border:1px solid ${t.cardBorder}; backdrop-filter:blur(16px); background: ${t.cardBg}; box-shadow: ${t.cardShadow}; transition:all 0.3s; position:relative; overflow:hidden; }
+        .task-card:hover { transform: translateY(-4px); }
+        .approve-btn { background: linear-gradient(135deg, #6366f1, #a855f7); color:white; border:none; padding:8px 16px; border-radius:6px; font-size:0.8rem; font-weight:700; cursor:pointer; }
+        .return-btn { background:transparent; color:#f87171; border:1px solid rgba(239, 68, 68, 0.2); padding:8px 16px; border-radius:6px; font-size:0.8rem; font-weight:700; cursor:pointer; }
+        .filter-pill { border:1px solid ${t.filterBorder}; border-radius:30px; padding:6px 16px; font-size:0.85rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; background: ${t.filterBg}; color: ${t.filterColor}; transition:all 0.2s; }
         .filter-pill.active { background: ${t.filterActive}; border-color: ${t.filterActBorder}; color: ${t.filterActColor}; }
+        .stats-card { background:${t.statsCard || t.cardBg}; border:1px solid ${t.cardBorder}; border-radius:12px; padding:1.5rem; backdrop-filter:blur(16px); transition:all 0.3s; text-align:center; }
+        .stats-card:hover { transform: translateY(-4px); }
       `}</style>
-
-      {/* ── Header ── */}
-      <div style={{ marginBottom:"2rem", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-        <div>
-          <div style={{ display:"flex", alignItems:"center", gap:"12px", marginBottom:"8px" }}>
-            <div style={{ width:"40px", height:"40px", borderRadius:"12px", background:"linear-gradient(135deg,#8b5cf6,#d946ef)", display:"flex", alignItems:"center", justifySelf:"center", justifyContent:"center", boxShadow:"0 0 20px rgba(139,92,246,0.3)" }}>
-              <CheckCircle size={20} color="white" />
+      
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        {/* ── Header ── */}
+        <div style={{ marginBottom:"2.5rem", display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"center", gap:"12px", marginBottom:"8px" }}>
+              <div style={{ width:"40px", height:"40px", borderRadius:"10px", background: "rgba(99, 102, 241, 0.2)", color: "#6366f1", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <CheckCircle size={20} />
+              </div>
+              <h1 style={{ fontSize:"1.75rem", fontWeight: 800, margin:0, letterSpacing:"-0.02em" }}>工作進度管理</h1>
             </div>
-            <h1 style={{ fontSize:"1.75rem", fontWeight:800, color:t.title, margin:0, letterSpacing:"-0.03em" }}>工作進度管理</h1>
+            <p style={{ color:t.subtitle, margin:0, fontSize:"0.95rem" }}>{user.name} ({user.role}) &bull; 公司管理系統</p>
           </div>
-          <p style={{ color:t.subtitle, margin:0, fontSize:"0.95rem" }}>{user.name} ({user.role}) - 目前檢視範圍：{isManagement ? "全體成員" : "個人專案"}</p>
         </div>
-      </div>
 
-      {/* ── Stats row ── */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"1rem", marginBottom:"1.5rem" }}>
-        {[
-          { label:"全部任務", count:counts.all,      color:"#8b5cf6" },
-          { label:"待查核",   count:counts.pending,  color:"#fbbf24" },
-          { label:"已結案",   count:counts.approved, color:"#10b981" },
-          { label:"已退回",   count:counts.returned, color:"#f43f5e" },
-        ].map((s,i)=>(
-          <div key={i} style={{ background:t.statsCard, border:`1px solid ${t.statsBorder}`, borderRadius:"18px", padding:"1rem", backdropFilter:"blur(12px)", transition:"all 0.4s", textAlign:"center" }}>
-            <div style={{ fontSize:"1.75rem", fontWeight:800, color:s.color, lineHeight:1 }}>{s.count}</div>
-            <div style={{ fontSize:"0.75rem", color:t.subtitle, marginTop:"6px", fontWeight:700 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
+        {/* ── Stats row ── */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"1.5rem", marginBottom:"2rem" }}>
+          {[
+            { label:"全部任務", count:counts.all,      color:"#8b5cf6" },
+            { label:"待查核",   count:counts.pending,  color:"#fbbf24" },
+            { label:"已結案",   count:counts.approved, color:"#10b981" },
+            { label:"已退回",   count:counts.returned, color:"#f43f5e" },
+          ].map((s,i)=>(
+            <div key={i} className="stats-card">
+              <div style={{ fontSize:"2rem", fontWeight:800, color:s.color, lineHeight:1 }}>{s.count}</div>
+              <div style={{ fontSize:"0.8rem", color:t.subtitle, marginTop:"8px", fontWeight:700 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
 
-      {/* ── Filter & Add ── */}
-      <div style={{ display:"flex", gap:"10px", marginBottom:"1.5rem", alignItems:"center", flexWrap:"wrap" }}>
-        {["all","pending","approved","returned"].map(f => (
-          <button key={f} className={`filter-pill ${filter===f?'active':''}`} onClick={()=>setFilter(f)}>
-            {f==="all"?"全部":f==="pending"?"待查核":f==="approved"?"已結案":"已退回"}
-            <span style={{ fontSize:"0.7rem", opacity:0.6 }}>{counts[f]}</span>
-          </button>
-        ))}
-        
-        <button onClick={()=>setAddingTask(v=>!v)} style={{ marginLeft:"auto", background:"transparent", border:`1px dashed ${t.cardBorder}`, borderRadius:"12px", padding:"6px 16px", color:t.subtitle, fontSize:"0.8rem", fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:"6px" }}>
-          <Plus size={14}/> {isManagement ? "指派新任務" : "新增工作回報"}
-        </button>
-      </div>
-
-      {/* ── Add Inline ── */}
-      {addingTask && (
-        <div style={{ display:"flex", gap:"12px", marginBottom:"1.5rem", animation: "slideDown 0.3s ease" }}>
-          <input
-            style={{ flex:1, background:t.inputBg, border:`1px solid ${t.inputBorder}`, borderRadius:"14px", padding:"12px 18px", color:t.inputText, fontSize:"0.9rem", outline:"none" }}
-            value={newTask}
-            onChange={e=>setNewTask(e.target.value)}
-            onKeyDown={e=>e.key==="Enter"&&addTask()}
-            placeholder={isManagement ? "指派任務內容與目標..." : "輸入今日已完成工作或問題回報..."}
-          />
-          <button onClick={addTask} style={{ background:"linear-gradient(135deg,#8b5cf6,#d946ef)", color:"white", border:"none", borderRadius:"14px", padding:"0 24px", fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", gap:"8px" }}>
-            <Send size={16}/> 送出
+        {/* ── Filter & Add ── */}
+        <div style={{ display:"flex", gap:"10px", marginBottom:"2rem", alignItems:"center", flexWrap:"wrap" }}>
+          {["all","pending","approved","returned"].map(f => (
+            <button key={f} className={`filter-pill ${filter===f?'active':''}`} onClick={()=>setFilter(f)}>
+              {f==="all"?"全部":f==="pending"?"待查核":f==="approved"?"已結案":"已退回"}
+              <span style={{ fontSize:"0.75rem", opacity:0.6 }}>{counts[f]}</span>
+            </button>
+          ))}
+          
+          <button onClick={()=>setAddingTask(v=>!v)} style={{ marginLeft:"auto", background:"transparent", border:`1px dashed ${t.cardBorder}`, borderRadius:"10px", padding:"8px 16px", color:t.subtitle, fontSize:"0.85rem", fontWeight:700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+            <Plus size={16}/> {isManagement ? "指派新任務" : "新增工作回報"}
           </button>
         </div>
-      )}
 
-      {/* ── Task List ── */}
-      <div style={{ display:"grid", gap:"1.25rem" }}>
-        {filtered.length === 0 && (
-          <div style={{ textAlign:"center", padding:"4rem", color:t.subtitle, border:`2px dashed ${t.cardBorder}`, borderRadius:"24px" }}>
-             <AlertCircle size={32} style={{ marginBottom: "1rem", opacity: 0.3 }} />
-             <div>目前沒有相關工作項目</div>
+        {/* ── Add Inline ── */}
+        {addingTask && (
+          <div style={{ display:"flex", gap:"12px", marginBottom:"2rem" }}>
+            <input
+              style={{ flex:1, background:t.inputBg, border:`1px solid ${t.inputBorder}`, borderRadius:"10px", padding:"12px 18px", color:t.inputText, fontSize:"0.95rem", outline:"none" }}
+              value={newTask}
+              onChange={e=>setNewTask(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&addTask()}
+              placeholder={isManagement ? "指派任務內容與目標..." : "輸入今日已完成工作或問題回報..."}
+            />
+            <button className="approve-btn" onClick={addTask} style={{ padding: "0 24px" }}>
+              <Send size={16}/> 送出
+            </button>
           </div>
         )}
-        {filtered.map((task) => {
-          const isAppr = task.status === "approved";
-          const isReturn = task.status === "returned";
-          const isPending = task.status === "pending";
-          const badge = badgeFor(task.status);
-          const noteOpen = expandedNote[task.id] !== false;
 
-          return (
-            <div key={task.id} className="task-card" style={{ padding:"1.5rem", opacity: isAppr ? 0.8 : 1 }}>
-              <div style={{ display:"flex", gap:"1.5rem" }}>
-                <div style={{ width:"44px", height:"44px", borderRadius:"14px", background: isAppr ? "rgba(16,185,129,0.1)" : "linear-gradient(135deg,#6366f1,#8b5cf6)", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, color: isAppr ? "#10b981" : "white", flexShrink:0 }}>
-                  {task.user.charAt(0)}
-                </div>
-
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:"10px", marginBottom:"6px", flexWrap:"wrap" }}>
-                    <span style={{ fontWeight:800, fontSize:"0.85rem", color:t.title }}>{task.user} <span style={{ color:t.subtitle, fontWeight:500 }}>in</span> {task.project}</span>
-                    <span style={{ fontSize:"0.7rem", fontWeight:700, padding:"3px 10px", borderRadius:"20px", background:badge.bg, border:`1px solid ${badge.border}`, color:badge.text }}>
-                      {labelFor(task.status)}
-                    </span>
-                  </div>
-                  
-                  <p style={{ margin:"0 0 8px", fontSize:"1.05rem", fontWeight:600, color: isAppr ? t.taskTextAppr : t.taskText, textDecoration: isAppr ? "line-through" : "none", lineHeight:1.5 }}>
-                    {task.content}
-                  </p>
-
-                  <div style={{ display:"flex", alignItems:"center", gap:"12px", fontSize:"0.75rem", color:t.metaText }}>
-                     <span style={{ display:"flex", alignItems:"center", gap:"4px" }}><Clock size={12}/> {task.time} 提交</span>
-                     {task.priority === "high" && <span style={{ color:"#ef4444", fontWeight:800, display:"flex", alignItems:"center", gap:"3px" }}><AlertCircle size={12}/> 高優先</span>}
-                  </div>
-                </div>
-
-                <div style={{ display:"flex", gap:"8px", alignItems:"center", flexShrink:0 }}>
-                  {isPending && isManagement && (
-                    <>
-                      <button className="approve-btn" onClick={()=>approve(task.id)}>核准專案</button>
-                      <button className="return-btn" disabled={!noteInputs[task.id]?.trim()} onClick={()=>returnTask(task.id)}>退回修改</button>
-                    </>
-                  )}
-                  {isReturn && task.user === user.name && (
-                    <button className="approve-btn" style={{ background:"#8b5cf6" }} onClick={()=>resubmit(task.id)}>重新提交</button>
-                  )}
-                  <button onClick={()=>setExpandedNote(p=>({...p,[task.id]:!noteOpen}))} style={{ background:"transparent", border:"none", color:t.subtitle, cursor:"pointer" }}>
-                    {noteOpen ? <ChevronUp size={20}/> : <ChevronDown size={20}/>}
-                  </button>
-                </div>
-              </div>
-
-              {noteOpen && (
-                <div style={{ marginTop:"1.25rem", paddingTop:"1.25rem", borderTop:`1px solid ${t.divider}` }}>
-                  {task.supervisorNote ? (
-                    <div style={{ background:t.noteBg, border:`1px solid ${t.noteBorder}`, borderRadius:"14px", padding:"12px 16px", display:"flex", gap:"10px" }}>
-                       <MessageSquare size={16} color={t.noteIcon} style={{ flexShrink:0, marginTop:"3px" }} />
-                       <div>
-                         <div style={{ fontSize:"0.72rem", fontWeight:700, color:t.noteIcon, textTransform:"uppercase", letterSpacing:"1px", marginBottom:"4px" }}>主管意見 / 修正指示</div>
-                         <div style={{ color:t.noteText, fontSize:"0.9rem", lineHeight:1.5 }}>{task.supervisorNote}</div>
-                       </div>
-                    </div>
-                  ) : (
-                    isPending && isManagement && (
-                      <input
-                        style={{ width:"100%", background:t.inputBg, border:`1px solid ${t.inputBorder}`, borderRadius:"12px", padding:"10px 14px", color:t.inputText, fontSize:"0.85rem", outline:"none" }}
-                        placeholder="輸入修正指示後即可退回，或留空直接核准..."
-                        value={noteInputs[task.id] || ""}
-                        onChange={e=>setNoteInputs(p=>({...p,[task.id]:e.target.value}))}
-                      />
-                    )
-                  )}
-                </div>
-              )}
+        {/* ── Task List ── */}
+        <div style={{ display:"grid", gap:"1.25rem" }}>
+          {filtered.length === 0 && (
+            <div className="glass-card" style={{ textAlign:"center", padding:"4rem", color:t.subtitle }}>
+               <AlertCircle size={32} style={{ marginBottom: "1rem", opacity: 0.3 }} />
+               <div>目前沒有相關工作項目</div>
             </div>
-          );
-        })}
+          )}
+          {filtered.map((task) => {
+            const isAppr = task.status === "approved";
+            const badge = badgeFor(task.status);
+            const noteOpen = expandedNote[task.id] !== false;
+
+            return (
+              <div key={task.id} className="task-card" style={{ padding:"1.5rem", opacity: isAppr ? 0.7 : 1 }}>
+                <div style={{ display:"flex", gap:"1.5rem" }}>
+                  <div style={{ width:"44px", height:"44px", borderRadius:"10px", background: isAppr ? "rgba(16,185,129,0.1)" : "rgba(99, 102, 241, 0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, color: isAppr ? "#10b981" : "#6366f1", flexShrink:0 }}>
+                    {task.user.charAt(0)}
+                  </div>
+
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:"10px", marginBottom:"8px", flexWrap:"wrap" }}>
+                      <span style={{ fontWeight:800, fontSize:"0.9rem" }}>{task.user} <span style={{ color:t.subtitle, fontWeight:500 }}>in</span> {task.project}</span>
+                      <span style={{ fontSize:"0.72rem", fontWeight:800, padding:"3px 12px", borderRadius:"30px", background:badge.bg, border:`1px solid ${badge.border}`, color:badge.text }}>
+                        {labelFor(task.status)}
+                      </span>
+                    </div>
+                    
+                    <p style={{ margin:"0 0 10px", fontSize:"1.05rem", fontWeight:600, color: isAppr ? t.taskTextAppr : t.taskText, textDecoration: isAppr ? "line-through" : "none", lineHeight:1.5 }}>
+                      {task.content}
+                    </p>
+
+                    <div style={{ display:"flex", alignItems:"center", gap:"12px", fontSize:"0.8rem", color:t.metaText }}>
+                       <span style={{ display:"flex", alignItems:"center", gap:"4px" }}><Clock size={12}/> {task.time} 提交</span>
+                       {task.priority === "high" && <span style={{ color:"#f43f5e", fontWeight:800, display:"flex", alignItems:"center", gap:"3px" }}><AlertCircle size={12}/> 高優先</span>}
+                    </div>
+                  </div>
+
+                  <div style={{ display:"flex", gap:"8px", alignItems:"center", flexShrink:0 }}>
+                    {task.status === "pending" && isManagement && (
+                      <>
+                        <button className="approve-btn" onClick={()=>approve(task.id)}>核准專案</button>
+                        <button className="return-btn" onClick={()=>returnTask(task.id)}>退回修改</button>
+                      </>
+                    )}
+                    {task.status === "returned" && task.user === user.name && (
+                      <button className="approve-btn" style={{ background:"#6366f1" }} onClick={()=>resubmit(task.id)}>重新提交</button>
+                    )}
+                    <button onClick={()=>setExpandedNote(p=>({...p,[task.id]:!noteOpen}))} style={{ background:"transparent", border:"none", color:t.subtitle, cursor:"pointer" }}>
+                      {noteOpen ? <ChevronDown size={18} style={{ transform: "rotate(180deg)" }}/> : <ChevronDown size={18}/>}
+                    </button>
+                  </div>
+                </div>
+
+                {noteOpen && (
+                  <div style={{ marginTop:"1.25rem", paddingTop:"1.25rem", borderTop:`1px solid ${t.divider}` }}>
+                    {task.supervisorNote ? (
+                      <div style={{ background:t.noteBg, border:`1px solid ${t.noteBorder}`, borderRadius:"10px", padding:"12px 16px", display:"flex", gap:"10px" }}>
+                         <MessageSquare size={16} color={t.noteIcon} style={{ flexShrink:0, marginTop: "2px" }} />
+                         <div>
+                           <div style={{ fontSize:"0.72rem", fontWeight:800, color:t.noteIcon, textTransform:"uppercase", letterSpacing: "0.05em", marginBottom:"4px" }}>主管意見 / 修正指示</div>
+                           <div style={{ color:t.noteText, fontSize:"0.9rem", lineHeight:1.5 }}>{task.supervisorNote}</div>
+                         </div>
+                      </div>
+                    ) : (
+                      task.status === "pending" && isManagement && (
+                        <input
+                          style={{ width:"100%", background:t.inputBg, border:`1px solid ${t.inputBorder}`, borderRadius:"8px", padding:"12px 16px", color:t.inputText, fontSize:"0.9rem", outline:"none" }}
+                          placeholder="輸入修正指示後即可退回，或留空直接核准..."
+                          value={noteInputs[task.id] || ""}
+                          onChange={e=>setNoteInputs(p=>({...p,[task.id]:e.target.value}))}
+                        />
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
