@@ -6,10 +6,19 @@ import { Shield, ChevronRight } from "lucide-react";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [companyCode, setCompanyCode] = useState("");
   const supabase = createClient();
 
   const handleGoogleLogin = async () => {
+    if (!companyCode.trim()) {
+      alert("請輸入您的企業代號");
+      return;
+    }
     setLoading(true);
+    
+    // 暫存企業代號到 Cookie，待回傳後讀取
+    document.cookie = `company_code=${companyCode}; path=/; max-age=3600; SameSite=Lax`;
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -37,21 +46,32 @@ export default function LoginPage() {
           <h1 className="text-4xl font-black text-white mb-3 tracking-tight">星鏈系統</h1>
           <p className="text-white/40 mb-10 text-lg font-medium">Starlink Enterprise OS</p>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
+            <div className="text-left">
+              <label className="text-white/30 text-[10px] font-black uppercase tracking-[0.2em] ml-1 mb-2 block">Enterprise Code / 企業代號</label>
+              <input 
+                type="text" 
+                placeholder="輸入您的企業代號 (例如: STARLINK-01)"
+                className="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-5 text-white font-bold placeholder:text-white/10 focus:border-indigo-500/50 focus:bg-white/10 transition-all outline-none"
+                value={companyCode}
+                onChange={(e) => setCompanyCode(e.target.value)}
+              />
+            </div>
+
             <button
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full h-14 bg-white text-black font-bold rounded-xl flex items-center justify-center gap-4 hover:bg-white/90 active:scale-95 transition-all shadow-xl disabled:opacity-50"
+              className="w-full h-14 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-xl flex items-center justify-center gap-4 hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] active:scale-[0.98] transition-all disabled:opacity-50"
             >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-              {loading ? "正在跳轉..." : "使用 Google 帳號登入"}
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 bg-white rounded-full p-0.5" />
+              {loading ? "正在跳轉安全驗證..." : "驗證代號並使用 Google 登入"}
             </button>
             
             <div className="pt-6 border-t border-white/5">
               <p className="text-white/20 text-xs uppercase tracking-widest font-bold mb-4">企業級安全防護</p>
               <div className="flex justify-center gap-2">
-                <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-[10px] font-bold text-indigo-400">SOC2 COMPLIANT</div>
-                <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-[10px] font-bold text-purple-400">256-BIT AES</div>
+                <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-[10px] font-bold text-indigo-400">DOUBLE AUTH</div>
+                <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-[10px] font-bold text-purple-400">ENCRYPTED IDENTITY</div>
               </div>
             </div>
           </div>
