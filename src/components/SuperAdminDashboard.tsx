@@ -64,9 +64,9 @@ export default function SuperAdminDashboard({ isDark = true, user }: { isDark?: 
           <div>
              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
                 <div style={{ padding: "10px", borderRadius: "12px", background: "rgba(99, 102, 241, 0.2)", color: t.accent }}><Hexagon size={24} fill={t.accent} fillOpacity={0.3} /></div>
-                <h1 style={{ fontSize: "2.25rem", fontWeight: 800, margin: 0, letterSpacing: "-0.03em" }}>超級管理員控制台</h1>
+                <h1 style={{ fontSize: "2.25rem", fontWeight: 800, margin: 0, letterSpacing: "-0.03em" }}>公司管理控制台</h1>
              </div>
-             <p style={{ color: t.subtitle, margin: 0, fontSize: "1rem" }}>管理所有企業及合約與功能模組</p>
+             <p style={{ color: t.subtitle, margin: 0, fontSize: "1rem" }}>企業核心管理與功能授權模組</p>
           </div>
           <button className="primary-btn"><Building2 size={16} /> 新增企業客戶</button>
         </header>
