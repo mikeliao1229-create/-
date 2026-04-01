@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import CheckInPanel from "@/components/CheckInPanel";
 import DailyTaskManager from "@/components/DailyTaskManager";
 import InternalChatRoom from "@/components/InternalChatRoom";
@@ -17,7 +19,8 @@ import {
   Sun,
   Moon,
   LogOut,
-  Bell
+  Bell,
+  User as UserIcon
 } from "lucide-react";
 
 interface AppConfig {
@@ -36,35 +39,65 @@ const apps: AppConfig[] = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+  const supabase = createClient();
   const [activeApp, setActiveApp] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDark, setIsDark] = useState(true);
+  const [loading, setLoading] = useState(true);
   
-  // Mock User State
-  const [user, setUser] = useState({
-    email: "mikeliao1229@gmail.com",
-    name: "adminhao",
-    role: "SUPER_ADMIN", // 改成 OWNER, ACCOUNTANT, STAFF 測試權限
-  });
+  // Real User State
+  const [user, setUser] = useState<any>(null);
 
   // Mock Notifications
   const [unreadCount, setUnreadCount] = useState(3);
   const [notification, setNotification] = useState<{msg: string, sender: string} | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        router.push("/login");
+        return;
+      }
+
+      // 權限邏輯：若是指定管理員 Email，則賦予 SUPER_ADMIN 權限
+      const isAdmin = authUser.email === "mikeliao1229@gmail.com";
+      
+      setUser({
+        id: authUser.id,
+        email: authUser.email,
+        name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0],
+        role: isAdmin ? "SUPER_ADMIN" : "STAFF", // 未來可從資料庫 Profile 表讀取
+      });
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, []);
 
   // Simulate incoming message
   useEffect(() => {
     const timer = setTimeout(() => {
       setNotification({ msg: "老闆，新的報關單已經上傳了！", sender: "Kevin (採購)" });
       setUnreadCount(prev => prev + 1);
-    }, 5000);
+    }, 10000);
     return () => clearTimeout(timer);
   }, []);
 
+  if (loading || !user) {
+    return (
+      <div className="h-screen bg-[#05070a] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   const ActiveComponent = apps.find(a => a.id === activeApp)?.component || SuperAdminDashboard;
 
-  const handleLogout = () => {
-    alert("正在登出...");
-    // 這裡未來會接 Supabase signOut
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
   };
 
   return (
@@ -88,7 +121,22 @@ export default function Home() {
           )}
         </div>
 
-        <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
+        {/* User Info in Sidebar */}
+        {isSidebarOpen && (
+          <div className="px-6 mb-8">
+            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5">
+              <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                <UserIcon size={20} />
+              </div>
+              <div className="overflow-hidden">
+                <div className="text-xs font-bold text-white/50 uppercase tracking-wider">{user.role}</div>
+                <div className="text-sm font-bold truncate">{user.name}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto font-sans">
           {apps.map((app) => {
             // Role Based Visibility
             if (app.id === "dashboard" && user.role !== "SUPER_ADMIN" && user.role !== "OWNER") return null;
@@ -106,13 +154,6 @@ export default function Home() {
                 <app.icon size={20} style={{ color: activeApp === app.id ? app.color : "inherit" }} />
                 {isSidebarOpen && <span className="font-medium text-sm">{app.name}</span>}
                 
-                {/* Unread Badge */}
-                {app.id === "chat" && unreadCount > 0 && (
-                  <div className={`absolute ${isSidebarOpen ? "right-10" : "right-2 top-2"} min-w-[18px] h-[18px] bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1 shadow-lg animate-pulse`}>
-                    {unreadCount}
-                  </div>
-                )}
-
                 {activeApp === app.id && isSidebarOpen && (
                   <div className="ml-auto w-1 h-5 rounded-full" style={{ backgroundColor: app.color }} />
                 )}
@@ -123,7 +164,7 @@ export default function Home() {
 
         {/* Action area */}
         <div className="p-4 border-t border-white/5 space-y-2">
-          {/* Light/Dark Toggle - Matching Screenshot */}
+          {/* Light/Dark Toggle */}
           <button
             onClick={() => setIsDark(!isDark)}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-white/50 hover:text-white hover:bg-white/5"
@@ -155,8 +196,8 @@ export default function Home() {
         {/* Background glow */}
         {isDark && (
           <div className="fixed inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px]" />
-            <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-purple-500/5 rounded-full blur-[120px]" />
+            <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/5 rounded-full blur-[120px]" />
           </div>
         )}
         
