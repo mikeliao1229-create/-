@@ -22,6 +22,7 @@ const themes = {
     cardShadow: "0 10px 30px rgba(99, 102, 241, 0.05)",
     title: "#1e293b",
     subtitle: "#64748b",
+    accent: "#6366f1",
     divider: "rgba(0, 0, 0, 0.05)",
   }
 };
