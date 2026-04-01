@@ -1,14 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { Shield, ChevronRight } from "lucide-react";
+import { Shield } from "lucide-react";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [companyCode, setCompanyCode] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const supabase = createClient();
+
+  // 若已經登入，自動跳轉
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) router.push("/");
+    };
+    checkUser();
+  }, [router, supabase]);
 
   const handleGoogleLogin = async () => {
     if (!companyCode.trim()) {

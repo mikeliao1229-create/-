@@ -33,8 +33,9 @@ interface AppConfig {
 
 const apps: AppConfig[] = [
   { id: "dashboard", name: "總覽面板", icon: LayoutDashboard, component: SuperAdminDashboard as any, color: "#6366f1" },
+  { id: "crm", name: "廠商管理", icon: ShieldCheck, component: SuperAdminDashboard as any, color: "#8b5cf6" },
   { id: "checkin", name: "差勤打卡", icon: Clock, component: CheckInPanel as any, color: "#06b6d4" },
-  { id: "tasks", name: "工作管理", icon: CheckCircle2, component: DailyTaskManager as any, color: "#8b5cf6" },
+  { id: "tasks", name: "工作管理", icon: CheckCircle2, component: DailyTaskManager as any, color: "#10b981" },
   { id: "chat", name: "內部訊息", icon: MessageSquare, component: InternalChatRoom as any, color: "#f43f5e" },
 ];
 
@@ -55,35 +56,54 @@ export default function Home() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) {
-        router.push("/login");
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        if (window.location.pathname !== "/login") {
+          router.push("/login");
+        }
         return;
       }
 
-      // 權限邏輯：若是指定管理員 Email，則賦予 SUPER_ADMIN 權限
+      const authUser = session.user;
+      // 權限邏輯：若是指定管理員 Email
       const isAdmin = authUser.email === "mikeliao1229@gmail.com";
       
       setUser({
         id: authUser.id,
         email: authUser.email,
         name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0],
-        role: isAdmin ? "SUPER_ADMIN" : "STAFF", // 未來可從資料庫 Profile 表讀取
+        role: isAdmin ? "SUPER_ADMIN" : "STAFF",
       });
       setLoading(false);
     };
 
     fetchUser();
-  }, []);
+    
+    // 監聽登入狀態改變
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        fetchUser();
+      } else {
+        router.push("/login");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router, supabase]);
 
   // Simulate incoming message
   useEffect(() => {
     const timer = setTimeout(() => {
-      setNotification({ msg: "老闆，新的報關單已經上傳了！", sender: "Kevin (採購)" });
+      if (user?.role === "SUPER_ADMIN") {
+        setNotification({ msg: "王老闆，新的合約已經寄達！", sender: "廠商管理員" });
+      } else {
+        setNotification({ msg: "老闆，工作進度已更新。", sender: "Kevin" });
+      }
       setUnreadCount(prev => prev + 1);
-    }, 10000);
+    }, 15000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [user]);
 
   if (loading || !user) {
     return (
@@ -114,7 +134,7 @@ export default function Home() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
                 <ShieldCheck size={20} />
               </div>
-              <span className="font-bold text-lg tracking-tight">星鏈系統</span>
+              <span className="font-bold text-lg tracking-tight">公司管理系統</span>
             </div>
           ) : (
             <ShieldCheck size={24} className="mx-auto text-indigo-500" />
@@ -138,8 +158,12 @@ export default function Home() {
 
         <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto font-sans">
           {apps.map((app) => {
-            // Role Based Visibility
-            if (app.id === "dashboard" && user.role !== "SUPER_ADMIN" && user.role !== "OWNER") return null;
+            // Role Based Visibility - SUPER_ADMIN 僅顯示 總覽、廠商管理、內部訊息
+            if (user.role === "SUPER_ADMIN") {
+               if (["checkin", "tasks"].includes(app.id)) return null;
+            } else {
+               if (["crm"].includes(app.id)) return null;
+            }
             
             return (
               <button
