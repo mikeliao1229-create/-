@@ -59,10 +59,10 @@ export default function LoginPage() {
 
           <div className="space-y-6">
             <div className="text-left">
-              <label className="text-white/30 text-[10px] font-black uppercase tracking-[0.2em] ml-1 mb-2 block">System Code / 管理代號</label>
+              <label className="text-white/30 text-[10px] font-black uppercase tracking-[0.2em] ml-1 mb-2 block">System Code / 公司代號</label>
               <input 
                 type="text" 
-                placeholder="最高權限請輸入 adminhao"
+                placeholder="請輸入公司代號"
                 className="w-full h-14 bg-white/5 border border-white/10 rounded-xl px-5 text-white font-bold placeholder:text-white/10 focus:border-indigo-500/50 focus:bg-white/10 transition-all outline-none"
                 value={companyCode}
                 onChange={(e) => setCompanyCode(e.target.value)}
